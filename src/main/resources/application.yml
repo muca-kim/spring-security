@@ -1,0 +1,22 @@
+##server port
+server:
+    port: 8081
+
+##spring configuration
+spring:
+    # main:
+    #     allow-bean-definition-overriding: true
+    datasource:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://172.30.1.48:3306/security?autoReconnect=true&useSSL=false&serverTimezone=UTC
+        username: develop
+        password: 1234
+    jpa:
+        hibernate:
+            ddl-auto: none
+        generate-ddl: false
+        show-sql: true
+        database: mysql
+        properties:
+            hibernate:
+                format_sql: true
