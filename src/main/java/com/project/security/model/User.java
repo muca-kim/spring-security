@@ -11,10 +11,13 @@ import javax.persistence.Transient;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Entity(name = "user")
+@NoArgsConstructor
 public class User implements UserDetails {
 
     @Id
@@ -33,10 +36,12 @@ public class User implements UserDetails {
     @Transient
     private List<? extends GrantedAuthority> authorities;
 
-    public User(String userId, String name, String password, String role, String phoneNo) {
+    @Builder
+    public User(String userId, String name, String password, String address, String role, String phoneNo) {
         this.userId = userId;
         this.name = name;
         this.password = password;
+        this.address = address;
         this.role = role;
         this.phoneNo = phoneNo;
     }
