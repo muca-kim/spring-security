@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 @Controller
 public class MainController {
 
-    @GetMapping(name = "/")
+    @GetMapping("/")
     public String viewMain() {
         log.info("start main");
         return "main";

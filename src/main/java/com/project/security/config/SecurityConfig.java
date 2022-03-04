@@ -25,6 +25,10 @@ import org.springframework.security.web.authentication.AuthenticationFailureHand
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Configuration
 public class SecurityConfig {
 
@@ -35,12 +39,20 @@ public class SecurityConfig {
 
     @EnableWebSecurity
     @Configuration
+    @RequiredArgsConstructor
     public static class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+        private final PasswordEncoder passwordEncoder;
 
         @Override
         protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+            String encodedPassword = passwordEncoder.encode("admin");
             // 인메모리 유저 설정(관리자)
-            auth.inMemoryAuthentication().withUser("admin").password("admin").roles("ADMIN");
+            auth.inMemoryAuthentication().withUser("admin").password(encodedPassword)
+                    .roles("ADMIN");
+            encodedPassword = passwordEncoder.encode("user001");
+            auth.inMemoryAuthentication().withUser("user001").password(encodedPassword)
+                    .roles("USER");
 
         }
 
@@ -51,18 +63,20 @@ public class SecurityConfig {
 
         @Override
         protected void configure(HttpSecurity http) throws Exception {
-            http.authorizeRequests()
+            http.csrf().disable()
+                    .authorizeRequests()
                     // 페이지 권한 설정
-                    .antMatchers("/", "login", "logout").permitAll()
-                    .antMatchers("/page").authenticated()
+                    .antMatchers("/", "/login", "/logout", "/signup").permitAll()
                     .and()
                     // 로그인 설정
-                    .formLogin().loginPage("/login").usernameParameter("userId").passwordParameter("userPassword")
-                    .successHandler(new LoginSuccessHandler()).failureHandler(new LoginFailHandler()).permitAll()
+                    .formLogin().loginPage("/login").usernameParameter("userId").passwordParameter("password")
+                    .permitAll()
+                    .successHandler(new LoginSuccessHandler()).failureHandler(new LoginFailHandler())
                     .and()
                     // 로그아웃
-                    .logout().deleteCookies("isLogin").invalidateHttpSession(false).logoutUrl("/logout")
-                    .addLogoutHandler(new CustomLogoutHandler());
+                    .logout().addLogoutHandler(new CustomLogoutHandler());
+
+            http.headers().frameOptions().sameOrigin();
 
         }
 
@@ -85,7 +99,8 @@ public class SecurityConfig {
             @Override
             public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                     Authentication authentication) throws IOException, ServletException {
-                setRedirectToSameUrl(request, response);
+                log.info("success={}", request.getRequestURI());
+                setRedirectToPrevUrl(request, response);
             }
         }
 
@@ -94,7 +109,8 @@ public class SecurityConfig {
             @Override
             public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                     AuthenticationException exception) throws IOException, ServletException {
-                setRedirectToSameUrl(request, response);
+                log.info("fail={}", request.getRequestURI());
+                setRedirectToPrevUrl(request, response);
             }
 
         }
@@ -105,7 +121,7 @@ public class SecurityConfig {
             public void logout(HttpServletRequest request, HttpServletResponse response,
                     Authentication authentication) {
                 try {
-                    setRedirectToSameUrl(request, response);
+                    setRedirectToPrevUrl(request, response);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -113,12 +129,15 @@ public class SecurityConfig {
 
         }
 
-        private void setRedirectToSameUrl(HttpServletRequest request, HttpServletResponse response) throws IOException {
-            String prevPage = request.getHeader("Referer");
-            if (prevPage == null) {
+        // 이전 url로 리다이렉트 설정
+        protected void setRedirectToPrevUrl(HttpServletRequest request, HttpServletResponse response)
+                throws IOException {
+            String prevUrl = request.getRequestURI();
+            log.info("prevUrl={}", prevUrl);
+            if (prevUrl == null) {
                 response.sendRedirect("/");
             } else {
-                response.sendRedirect(prevPage);
+                response.sendRedirect(prevUrl);
             }
         }
 
