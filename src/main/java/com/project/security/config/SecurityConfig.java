@@ -7,8 +7,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.project.security.service.UserService;
+import com.project.security.service.UserServiceImp;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -19,6 +21,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -44,6 +48,9 @@ public class SecurityConfig {
 
         private final PasswordEncoder passwordEncoder;
 
+        @Value("${spring.security.debug:false}")
+        private boolean securityDebug;
+
         @Override
         protected void configure(AuthenticationManagerBuilder auth) throws Exception {
             String encodedPassword = passwordEncoder.encode("admin");
@@ -58,7 +65,10 @@ public class SecurityConfig {
 
         @Override
         public void configure(WebSecurity web) {
+            // 리소스 권한 설정
             web.ignoring().antMatchers("/resources/**");
+            // 디버그 로그 설정
+            web.debug(securityDebug);
         }
 
         @Override
@@ -82,8 +92,9 @@ public class SecurityConfig {
 
         @Configuration
         protected static class AuthenticationConfiguration extends GlobalAuthenticationConfigurerAdapter {
+
             @Autowired
-            UserService userService;
+            private UserServiceImp userService;
 
             @Override
             public void init(AuthenticationManagerBuilder auth) throws Exception {
@@ -100,6 +111,7 @@ public class SecurityConfig {
             public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                     Authentication authentication) throws IOException, ServletException {
                 log.info("success={}", request.getRequestURI());
+                log();
                 setRedirectToPrevUrl(request, response);
             }
         }
@@ -110,6 +122,7 @@ public class SecurityConfig {
             public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                     AuthenticationException exception) throws IOException, ServletException {
                 log.info("fail={}", request.getRequestURI());
+                log();
                 setRedirectToPrevUrl(request, response);
             }
 
@@ -139,6 +152,12 @@ public class SecurityConfig {
             } else {
                 response.sendRedirect(prevUrl);
             }
+        }
+
+        private void log() {
+            SecurityContext context = SecurityContextHolder.getContext();
+            Authentication authentication = context.getAuthentication();
+            log.info("login log={}", authentication);
         }
 
     }

@@ -23,3 +23,8 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
+  security:
+    debug: true
+# logging:
+#   level:
+#     org.springframework.test.context: DEBUG
