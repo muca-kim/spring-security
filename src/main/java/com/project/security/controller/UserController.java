@@ -3,7 +3,7 @@ package com.project.security.controller;
 import java.util.Map;
 
 import com.project.security.model.User;
-import com.project.security.service.UserService;
+import com.project.security.service.UserServiceImp;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserService userService;
+    private final UserServiceImp userService;
     private final PasswordEncoder passwordEncoder;
 
     @PostMapping("/signup")
