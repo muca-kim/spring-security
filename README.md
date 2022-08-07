@@ -32,10 +32,10 @@
 
 ## 메모
 
-1. AuthenticationEntryPoint
+### 1. AuthenticationEntryPoint
 
-- 인증과정에서 실패하거나 인증헤더(Authorization)를 보내지 않게되는 경우 401(UnAuthorized) 라는 응답
+인증과정에서 실패하거나 인증헤더(Authorization)를 보내지 않게되는 경우 401(UnAuthorized) 라는 응답
 
-2. AccessDeniedHandler
+### 2. AccessDeniedHandler
 
-- 권한이 충족되지 않으면 403(Forbidden) 접근금지 타입을 반환
+권한이 충족되지 않으면 403(Forbidden) 접근금지 타입을 반환
